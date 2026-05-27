@@ -1,0 +1,21 @@
+# 开发环境依赖
+
+# 生产依赖
+-r requirements.txt
+
+# 开发工具
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.12.1
+flake8==7.0.0
+pylint==3.0.3
+
+# 调试工具
+ipython==8.19.0
+ipdb==0.13.13
+
+# 文档生成
+sphinx==7.2.6
+
+# 性能分析
+memory-profiler==0.61.0

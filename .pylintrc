@@ -1,0 +1,44 @@
+[MASTER]
+# Python代码检查配置
+
+# 忽略的文件或目录
+ignore=venv,env,__pycache__,.git
+
+# 使用多进程加速
+jobs=4
+
+[MESSAGES CONTROL]
+# 禁用的检查
+disable=
+    C0111,  # missing-docstring
+    C0103,  # invalid-name
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    W0703,  # broad-except
+
+[FORMAT]
+# 最大行长度
+max-line-length=120
+
+# 缩进字符串
+indent-string='    '
+
+[BASIC]
+# 变量命名规则
+variable-rgx=[a-z_][a-z0-9_]{2,30}$
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+attr-rgx=[a-z_][a-z0-9_]{2,30}$
+argument-rgx=[a-z_][a-z0-9_]{2,30}$
+
+[DESIGN]
+# 最大参数数量
+max-args=7
+
+# 最大局部变量数量
+max-locals=20
+
+# 最大返回语句数量
+max-returns=6
+
+# 最大分支数量
+max-branches=15

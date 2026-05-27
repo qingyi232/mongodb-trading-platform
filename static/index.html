@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品交易平台</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar" id="navbar">
+            <div class="container">
+                <div class="nav-brand">
+                    <h1>商品交易平台</h1>
+                </div>
+                <div class="nav-search" id="navSearch">
+                    <input type="text" id="searchInput" placeholder="搜索商品...">
+                    <button onclick="searchProducts()">搜索</button>
+                </div>
+                <div class="nav-menu">
+                    <a href="javascript:void(0)" onclick="showPage('home')">首页</a>
+                    <a href="javascript:void(0)" onclick="showPage('products')">商品</a>
+                    <div class="nav-user" id="navUser">
+                        <button onclick="showPage('login')">登录</button>
+                        <button onclick="showPage('register')">注册</button>
+                    </div>
+                    <div class="nav-user-info" id="navUserInfo" style="display: none;">
+                        <span id="username"></span>
+                        <div class="dropdown">
+                            <button class="dropdown-btn">我的</button>
+                            <div class="dropdown-content">
+                                <a href="javascript:void(0)" onclick="showPage('profile')">个人信息</a>
+                                <a href="javascript:void(0)" onclick="showPage('orders')" id="ordersLink">我的订单</a>
+                                <a href="javascript:void(0)" onclick="showPage('seller')" id="sellerLink" style="display: none;">卖家中心</a>
+                                <a href="javascript:void(0)" onclick="showPage('admin')" id="adminLink" style="display: none;">管理后台</a>
+                                <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+                            </div>
+                        </div>
+                        <button onclick="showPage('cart')" class="cart-btn">
+                            <span>🛒</span>
+                            <span class="cart-count" id="cartCount">0</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 首页 -->
+            <div id="homePage" class="page active">
+                <div class="hero">
+                    <div class="container">
+                        <h2>欢迎来到商品交易平台</h2>
+                        <p>安全、便捷的在线交易体验</p>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="categories" id="homeCategories"></div>
+                    <h3>热门商品</h3>
+                    <div class="product-grid" id="homeProducts"></div>
+                </div>
+            </div>
+
+            <!-- 商品列表页 -->
+            <div id="productsPage" class="page">
+                <div class="container">
+                    <div class="products-layout">
+                        <aside class="filters">
+                            <h3>筛选</h3>
+                            <div class="filter-group">
+                                <label>分类</label>
+                                <select id="categoryFilter" onchange="filterProducts()">
+                                    <option value="">全部分类</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>价格区间</label>
+                                <input type="number" id="minPrice" placeholder="最低价" onchange="filterProducts()">
+                                <input type="number" id="maxPrice" placeholder="最高价" onchange="filterProducts()">
+                            </div>
+                            <div class="filter-group">
+                                <label>排序</label>
+                                <select id="sortBy" onchange="filterProducts()">
+                                    <option value="created_at">最新上架</option>
+                                    <option value="sales">销量</option>
+                                    <option value="price">价格</option>
+                                    <option value="rating">评分</option>
+                                </select>
+                            </div>
+                        </aside>
+                        <div class="products-main">
+                            <div class="product-grid" id="productsList"></div>
+                            <div class="pagination" id="productsPagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 商品详情页 -->
+            <div id="productDetailPage" class="page">
+                <div class="container">
+                    <div class="product-detail" id="productDetail"></div>
+                </div>
+            </div>
+
+            <!-- 购物车页 -->
+            <div id="cartPage" class="page">
+                <div class="container">
+                    <h2>购物车</h2>
+                    <div class="cart-content" id="cartContent"></div>
+                </div>
+            </div>
+
+            <!-- 登录页 -->
+            <div id="loginPage" class="page">
+                <div class="auth-container">
+                    <div class="auth-box">
+                        <h2>登录</h2>
+                        <form onsubmit="login(event)">
+                            <input type="text" id="loginUsername" placeholder="用户名" required>
+                            <input type="password" id="loginPassword" placeholder="密码" required>
+                            <button type="submit">登录</button>
+                        </form>
+                        <p>还没有账号？<a href="#" onclick="showPage('register')">立即注册</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 注册页 -->
+            <div id="registerPage" class="page">
+                <div class="auth-container">
+                    <div class="auth-box">
+                        <h2>注册</h2>
+                        <form onsubmit="register(event)">
+                            <input type="text" id="regUsername" placeholder="用户名" required>
+                            <input type="email" id="regEmail" placeholder="邮箱" required>
+                            <input type="tel" id="regPhone" placeholder="手机号">
+                            <input type="password" id="regPassword" placeholder="密码" required>
+                            <select id="regRole" required>
+                                <option value="">选择角色</option>
+                                <option value="buyer">买家</option>
+                                <option value="seller">卖家</option>
+                            </select>
+                            <button type="submit">注册</button>
+                        </form>
+                        <p>已有账号？<a href="#" onclick="showPage('login')">立即登录</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 个人信息页 -->
+            <div id="profilePage" class="page">
+                <div class="container">
+                    <div class="profile-layout">
+                        <aside class="profile-sidebar">
+                            <div class="profile-menu">
+                                <a href="javascript:void(0)" onclick="showProfileTab('info')" class="active">个人信息</a>
+                                <a href="javascript:void(0)" onclick="showProfileTab('address')">收货地址</a>
+                                <a href="javascript:void(0)" onclick="showProfileTab('password')">修改密码</a>
+                            </div>
+                        </aside>
+                        <div class="profile-main">
+                            <div id="profileInfo" class="profile-tab active"></div>
+                            <div id="profileAddress" class="profile-tab"></div>
+                            <div id="profilePassword" class="profile-tab"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 订单页 -->
+            <div id="ordersPage" class="page">
+                <div class="container">
+                    <h2>我的订单</h2>
+                    <div class="order-tabs">
+                        <button onclick="filterOrders('')" class="active">全部</button>
+                        <button onclick="filterOrders('pending_payment')">待支付</button>
+                        <button onclick="filterOrders('paid')">待发货</button>
+                        <button onclick="filterOrders('shipped')">待收货</button>
+                        <button onclick="filterOrders('completed')">已完成</button>
+                    </div>
+                    <div class="orders-list" id="ordersList"></div>
+                </div>
+            </div>
+
+            <!-- 卖家中心 -->
+            <div id="sellerPage" class="page">
+                <div class="container">
+                    <div class="seller-layout">
+                        <aside class="seller-sidebar">
+                            <div class="seller-menu">
+                                <a href="javascript:void(0)" onclick="showSellerTab('products')" class="active">我的商品</a>
+                                <a href="javascript:void(0)" onclick="showSellerTab('orders')">订单管理</a>
+                                <a href="javascript:void(0)" onclick="showSellerTab('add')">发布商品</a>
+                            </div>
+                        </aside>
+                        <div class="seller-main">
+                            <div id="sellerProducts" class="seller-tab active"></div>
+                            <div id="sellerOrders" class="seller-tab"></div>
+                            <div id="sellerAdd" class="seller-tab"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 管理后台 -->
+            <div id="adminPage" class="page">
+                <div class="container">
+                    <div class="admin-layout">
+                        <aside class="admin-sidebar">
+                            <div class="admin-menu">
+                                <a href="javascript:void(0)" onclick="showAdminTab('dashboard')" class="active">数据统计</a>
+                                <a href="javascript:void(0)" onclick="showAdminTab('users')">用户管理</a>
+                                <a href="javascript:void(0)" onclick="showAdminTab('categories')">分类管理</a>
+                                <a href="javascript:void(0)" onclick="showAdminTab('orders')">订单管理</a>
+                                <a href="javascript:void(0)" onclick="showAdminTab('logs')">日志管理</a>
+                            </div>
+                        </aside>
+                        <div class="admin-main">
+                            <div id="adminDashboard" class="admin-tab active"></div>
+                            <div id="adminUsers" class="admin-tab"></div>
+                            <div id="adminCategories" class="admin-tab"></div>
+                            <div id="adminOrders" class="admin-tab"></div>
+                            <div id="adminLogs" class="admin-tab"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2026 商品交易平台. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/product.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/order.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/seller.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

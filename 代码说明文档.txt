@@ -1,0 +1,587 @@
+================================================================================
+                        电商平台系统 - 代码说明文档
+================================================================================
+
+【项目概述】
+这是一个基于 Flask + MongoDB 的电商平台系统，支持买家、卖家、管理员三种角色。
+系统采用前后端分离架构，后端提供 RESTful API，前端使用原生 JavaScript 实现。
+
+================================================================================
+【技术栈】
+================================================================================
+
+后端技术：
+- Flask 3.0.0          - Python Web 框架
+- PyMongo 4.6.1        - MongoDB 数据库驱动
+- Flask-CORS 4.0.0     - 跨域资源共享支持
+- Werkzeug 3.0.1       - 密码加密和安全工具
+- python-dotenv 1.0.0  - 环境变量管理
+- openpyxl 3.1.2       - Excel 文件导出
+
+前端技术：
+- 原生 JavaScript (ES6+)
+- HTML5 + CSS3
+- Fetch API 进行异步请求
+
+数据库：
+- MongoDB 本地数据库
+
+================================================================================
+【项目结构】
+================================================================================
+
+ecommerce-platform/
+│
+├── app.py                    # Flask 应用主入口
+├── config.py                 # 配置文件（数据库连接、密钥等）
+├── database.py               # 数据库初始化和连接管理
+│
+├── routes/                   # 路由模块（API 接口）
+│   ├── __init__.py          # 路由包初始化
+│   ├── auth.py              # 认证相关接口（注册、登录、登出）
+│   ├── user.py              # 用户相关接口（个人信息、地址管理）
+│   ├── product.py           # 商品相关接口（商品列表、详情、发布）
+│   ├── order.py             # 订单相关接口（下单、支付、发货）
+│   ├── cart.py              # 购物车相关接口
+│   └── admin.py             # 管理员接口（用户管理、统计数据）
+│
+├── static/                   # 前端静态资源
+│   ├── index.html           # 主页面
+│   ├── css/
+│   │   └── style.css        # 样式文件
+│   └── js/
+│       ├── api.js           # API 请求封装
+│       ├── app.js           # 应用主逻辑
+│       ├── product.js       # 商品页面逻辑
+│       ├── cart.js          # 购物车页面逻辑
+│       ├── order.js         # 订单页面逻辑
+│       ├── profile.js       # 个人中心逻辑
+│       ├── seller.js        # 卖家中心逻辑
+│       ├── admin.js         # 管理后台逻辑
+│       └── modal.js         # 弹窗组件
+│
+├── .env.example             # 环境变量示例文件
+├── requirements.txt         # Python 依赖包列表
+├── requirements-dev.txt     # 开发环境依赖包
+├── pytest.ini              # 测试配置文件
+├── .pylintrc               # Python 代码检查配置
+├── .editorconfig           # 编辑器配置
+│
+├── check_environment.py     # 环境检查脚本
+├── check_mongodb.bat       # MongoDB 连接检查脚本
+├── init_sample_data.py     # 初始化示例数据脚本
+└── start.bat               # Windows 启动脚本
+
+================================================================================
+【核心模块说明】
+================================================================================
+
+一、后端核心文件
+----------------
+
+1. app.py - 应用主入口
+   - 创建 Flask 应用实例
+   - 配置 CORS 跨域支持
+   - 初始化数据库连接
+   - 注册所有路由蓝图
+   - 配置错误处理器
+   - 启动开发服务器（默认端口 5000）
+
+2. config.py - 配置管理
+   - 从 .env 文件加载环境变量
+   - 配置项：
+     * MONGODB_URI: MongoDB 连接字符串
+     * DATABASE_NAME: 数据库名称
+     * SECRET_KEY: Flask 会话密钥
+     * FLASK_ENV: 运行环境（development/production）
+
+3. database.py - 数据库管理
+   - 初始化 MongoDB 连接
+   - 创建数据库索引（提高查询性能）
+   - 自动创建管理员账户（admin/admin123）
+   - 初始化商品分类数据
+   - 提供全局数据库访问接口
+
+二、路由模块详解
+----------------
+
+1. routes/auth.py - 认证模块
+   功能：
+   - POST /api/auth/register    用户注册
+   - POST /api/auth/login       用户登录
+   - POST /api/auth/logout      用户登出
+   - GET  /api/auth/current     获取当前登录用户信息
+   
+   特点：
+   - 密码使用 Werkzeug 进行哈希加密
+   - 邮箱和手机号格式验证
+   - 用户名唯一性检查
+   - Session 会话管理
+   - 登录日志记录
+
+2. routes/user.py - 用户模块
+   功能：
+   - GET    /api/user/profile           获取个人信息
+   - PUT    /api/user/profile           更新个人信息
+   - PUT    /api/user/password          修改密码
+   - GET    /api/user/address           获取收货地址列表
+   - POST   /api/user/address           添加收货地址
+   - PUT    /api/user/address/<id>      更新收货地址
+   - DELETE /api/user/address/<id>      删除收货地址
+   
+   特点：
+   - 登录验证装饰器 @login_required
+   - 支持多个收货地址管理
+   - 默认地址设置
+
+3. routes/product.py - 商品模块
+   功能：
+   - GET    /api/product/list           商品列表（支持搜索、分类、价格筛选、排序）
+   - GET    /api/product/<id>           商品详情（含评价）
+   - POST   /api/product/               发布商品（卖家）
+   - PUT    /api/product/<id>           更新商品（卖家）
+   - DELETE /api/product/<id>           下架商品（卖家）
+   - GET    /api/product/seller/list    卖家商品列表
+   - GET    /api/product/categories     商品分类列表
+   
+   特点：
+   - 卖家权限验证装饰器 @seller_required
+   - 分页查询支持
+   - 多条件筛选（关键词、分类、价格区间）
+   - 多种排序方式（价格、销量、评分、时间）
+   - 商品评价关联查询
+
+4. routes/order.py - 订单模块
+   功能：
+   - POST   /api/order/create              创建订单
+   - POST   /api/order/pay/<id>            支付订单
+   - POST   /api/order/ship/<id>           发货（卖家）
+   - POST   /api/order/receive/<id>        确认收货（买家）
+   - POST   /api/order/cancel/<id>         取消订单
+   - POST   /api/order/refund/<id>         申请退款
+   - POST   /api/order/refund/<id>/approve 批准退款（卖家）
+   - GET    /api/order/buyer/list          买家订单列表
+   - GET    /api/order/seller/list         卖家订单列表
+   - GET    /api/order/<id>                订单详情
+   - POST   /api/order/<id>/review         订单评价
+   
+   特点：
+   - 自动生成唯一订单号
+   - 库存自动扣减和恢复
+   - 订单状态流转管理
+   - 支持订单评价
+   - 评价自动更新商品评分
+
+5. routes/cart.py - 购物车模块
+   功能：
+   - GET    /api/cart/           获取购物车
+   - POST   /api/cart/           添加商品到购物车
+   - PUT    /api/cart/<id>       更新购物车商品数量
+   - DELETE /api/cart/<id>       移除购物车商品
+   - DELETE /api/cart/clear      清空购物车
+   
+   特点：
+   - 实时库存检查
+   - 自动合并相同商品
+   - 商品信息关联查询
+
+6. routes/admin.py - 管理员模块
+   功能：
+   - GET    /api/admin/users                    用户列表
+   - PUT    /api/admin/users/<id>/status        修改用户状态
+   - DELETE /api/admin/users/<id>               删除用户
+   - GET    /api/admin/categories                分类列表
+   - POST   /api/admin/categories                添加分类
+   - PUT    /api/admin/categories/<id>           更新分类
+   - DELETE /api/admin/categories/<id>           删除分类
+   - GET    /api/admin/orders                    所有订单列表
+   - GET    /api/admin/statistics                数据统计
+   - GET    /api/admin/export/orders             导出订单数据
+   - GET    /api/admin/logs                      操作日志
+   
+   特点：
+   - 管理员权限验证装饰器 @admin_required
+   - 完整的用户管理功能
+   - 商品分类管理
+   - 数据统计（用户、商品、订单、销售额）
+   - 热门商品排行
+   - 销售趋势分析（近7天）
+   - Excel 数据导出
+   - 操作日志记录
+
+三、前端核心文件
+----------------
+
+1. static/js/api.js - API 请求封装
+   - request() 函数：统一的 HTTP 请求封装
+   - 自动处理 JSON 数据
+   - 统一错误处理
+   - 支持 GET、POST、PUT、DELETE 方法
+
+2. static/js/app.js - 应用主逻辑
+   - 页面路由管理
+   - 用户状态管理
+   - 导航栏渲染
+   - 页面切换逻辑
+   - 登录/注册表单处理
+
+3. static/js/product.js - 商品页面
+   - 商品列表展示
+   - 商品搜索和筛选
+   - 商品详情展示
+   - 添加到购物车
+   - 商品评价展示
+
+4. static/js/cart.js - 购物车页面
+   - 购物车列表展示
+   - 商品数量修改
+   - 商品删除
+   - 结算功能
+
+5. static/js/order.js - 订单页面
+   - 订单列表展示
+   - 订单详情查看
+   - 订单状态操作（支付、确认收货、取消、退款）
+   - 订单评价
+
+6. static/js/profile.js - 个人中心
+   - 个人信息展示和编辑
+   - 密码修改
+   - 收货地址管理
+
+7. static/js/seller.js - 卖家中心
+   - 商品管理（发布、编辑、下架）
+   - 订单管理（发货）
+   - 销售统计
+
+8. static/js/admin.js - 管理后台
+   - 用户管理
+   - 商品分类管理
+   - 订单管理
+   - 数据统计展示
+   - 操作日志查看
+
+9. static/js/modal.js - 弹窗组件
+   - 通用弹窗组件
+   - 支持自定义内容
+   - 支持确认/取消回调
+
+================================================================================
+【数据库设计】
+================================================================================
+
+MongoDB 数据库名称：ecommerce_platform
+
+集合（Collection）说明：
+
+1. users - 用户表
+   字段：
+   - _id: ObjectId           用户ID
+   - username: String        用户名（唯一）
+   - password: String        密码（哈希加密）
+   - email: String           邮箱（唯一）
+   - phone: String           手机号
+   - role: String            角色（buyer/seller/admin）
+   - status: String          状态（active/inactive）
+   - avatar: String          头像URL
+   - address: Array          收货地址列表
+   - created_at: DateTime    创建时间
+   
+   索引：
+   - username（唯一索引）
+   - email（唯一索引）
+
+2. products - 商品表
+   字段：
+   - _id: ObjectId           商品ID
+   - name: String            商品名称
+   - category: String        商品分类
+   - price: Float            价格
+   - stock: Integer          库存
+   - description: String     商品描述
+   - images: Array           商品图片URL列表
+   - seller_id: ObjectId     卖家ID
+   - status: String          状态（active/inactive/deleted）
+   - sales: Integer          销量
+   - rating: Float           评分
+   - review_count: Integer   评价数量
+   - created_at: DateTime    创建时间
+   
+   索引：
+   - name
+   - category
+
+3. orders - 订单表
+   字段：
+   - _id: ObjectId           订单ID
+   - order_no: String        订单号（唯一）
+   - buyer_id: String        买家ID
+   - items: Array            订单商品列表
+   - total_amount: Float     订单总金额
+   - address: Object         收货地址
+   - payment_method: String  支付方式
+   - status: String          订单状态
+   - tracking_no: String     物流单号
+   - refund_reason: String   退款原因
+   - created_at: DateTime    创建时间
+   - paid_at: DateTime       支付时间
+   - shipped_at: DateTime    发货时间
+   - completed_at: DateTime  完成时间
+   - refund_requested_at     退款申请时间
+   - refunded_at: DateTime   退款完成时间
+   
+   订单状态流转：
+   pending_payment → paid → shipped → completed
+                  ↓
+              cancelled
+                  ↓
+          refund_pending → refunded
+   
+   索引：
+   - order_no（唯一索引）
+   - buyer_id
+   - seller_id
+
+4. cart - 购物车表
+   字段：
+   - _id: ObjectId           购物车项ID
+   - user_id: String         用户ID
+   - product_id: String      商品ID
+   - quantity: Integer       数量
+   - created_at: DateTime    添加时间
+
+5. categories - 商品分类表
+   字段：
+   - _id: ObjectId           分类ID
+   - name: String            分类名称
+   - description: String     分类描述
+   - created_at: DateTime    创建时间
+
+6. reviews - 商品评价表
+   字段：
+   - _id: ObjectId           评价ID
+   - order_id: String        订单ID
+   - product_id: String      商品ID
+   - buyer_id: String        买家ID
+   - rating: Integer         评分（1-5）
+   - comment: String         评价内容
+   - created_at: DateTime    评价时间
+
+7. logs - 操作日志表
+   字段：
+   - _id: ObjectId           日志ID
+   - user_id: String         用户ID
+   - username: String        用户名
+   - action: String          操作类型
+   - details: String         操作详情
+   - ip: String              IP地址
+   - timestamp: DateTime     操作时间
+
+================================================================================
+【API 接口规范】
+================================================================================
+
+一、请求格式
+- Content-Type: application/json
+- 请求体使用 JSON 格式
+
+二、响应格式
+成功响应：
+{
+  "message": "操作成功",
+  "data": { ... }
+}
+
+错误响应：
+{
+  "error": "错误信息"
+}
+
+三、HTTP 状态码
+- 200: 请求成功
+- 201: 创建成功
+- 400: 请求参数错误
+- 401: 未登录
+- 403: 权限不足
+- 404: 资源不存在
+- 500: 服务器内部错误
+
+四、认证机制
+- 使用 Flask Session 进行会话管理
+- 登录后 Session 中存储：user_id、username、role
+- 需要登录的接口通过 @login_required 装饰器验证
+- 需要特定角色的接口通过 @seller_required、@admin_required 验证
+
+================================================================================
+【安全机制】
+================================================================================
+
+1. 密码安全
+   - 使用 Werkzeug 的 generate_password_hash 进行密码加密
+   - 使用 check_password_hash 验证密码
+   - 密码不以明文存储
+
+2. 输入验证
+   - 邮箱格式验证（正则表达式）
+   - 手机号格式验证（正则表达式）
+   - 用户名长度限制（3-20字符）
+   - 密码长度限制（最少6字符）
+
+3. 权限控制
+   - 登录验证装饰器
+   - 角色权限验证装饰器
+   - 资源所有权验证（如卖家只能修改自己的商品）
+
+4. 数据库安全
+   - 使用 ObjectId 验证防止注入
+   - 唯一索引防止重复数据
+   - 软删除机制（status 字段）
+
+5. 日志记录
+   - 记录用户登录日志
+   - 记录管理员操作日志
+   - 包含操作时间、用户、IP地址等信息
+
+================================================================================
+【业务流程】
+================================================================================
+
+一、用户注册登录流程
+1. 用户填写注册信息（用户名、密码、邮箱、角色）
+2. 后端验证数据格式和唯一性
+3. 密码加密后存入数据库
+4. 返回注册成功
+5. 用户使用用户名和密码登录
+6. 后端验证用户名和密码
+7. 创建 Session 会话
+8. 返回用户信息
+
+二、商品发布流程（卖家）
+1. 卖家登录系统
+2. 填写商品信息（名称、分类、价格、库存、描述、图片）
+3. 后端验证数据完整性
+4. 保存商品到数据库
+5. 记录操作日志
+6. 返回发布成功
+
+三、购物下单流程（买家）
+1. 买家浏览商品列表
+2. 查看商品详情
+3. 添加商品到购物车
+4. 进入购物车页面
+5. 选择商品和数量
+6. 点击结算
+7. 选择收货地址
+8. 创建订单
+9. 扣减商品库存
+10. 清空购物车中已下单商品
+11. 跳转到订单支付页面
+
+四、订单处理流程
+1. 买家支付订单（状态：pending_payment → paid）
+2. 卖家查看待发货订单
+3. 卖家填写物流单号并发货（状态：paid → shipped）
+4. 买家查看物流信息
+5. 买家确认收货（状态：shipped → completed）
+6. 买家评价商品
+7. 评价更新商品评分
+
+五、退款流程
+1. 买家申请退款（状态：paid/shipped → refund_pending）
+2. 卖家或管理员审核退款申请
+3. 批准退款（状态：refund_pending → refunded）
+4. 恢复商品库存
+5. 退款完成
+
+================================================================================
+【扩展功能建议】
+================================================================================
+
+1. 支付集成
+   - 集成支付宝、微信支付等第三方支付
+   - 实现真实的支付流程
+
+2. 图片上传
+   - 实现图片上传功能
+   - 使用云存储服务（如阿里云OSS、七牛云）
+
+3. 消息通知
+   - 订单状态变更通知
+   - 站内消息系统
+   - 邮件通知
+
+4. 搜索优化
+   - 集成 Elasticsearch 实现全文搜索
+   - 搜索历史记录
+   - 热门搜索推荐
+
+5. 推荐系统
+   - 基于用户行为的商品推荐
+   - 协同过滤算法
+   - 热门商品推荐
+
+6. 优惠券系统
+   - 优惠券发放和使用
+   - 满减活动
+   - 限时折扣
+
+7. 物流跟踪
+   - 集成物流公司API
+   - 实时物流信息查询
+
+8. 数据分析
+   - 用户行为分析
+   - 销售数据分析
+   - 可视化报表
+
+================================================================================
+【常见问题】
+================================================================================
+
+Q1: 如何修改默认管理员账户？
+A1: 在 database.py 的 init_db() 函数中修改管理员账户信息。
+
+Q2: 如何添加新的商品分类？
+A2: 管理员登录后台，在分类管理中添加新分类。
+
+Q3: 如何修改端口号？
+A3: 在 app.py 的最后一行修改 port 参数。
+
+Q4: 如何启用生产模式？
+A4: 在 .env 文件中设置 FLASK_ENV=production，并使用 Gunicorn 等生产服务器运行。
+
+Q5: 数据库连接失败怎么办？
+A5: 检查 MongoDB 服务是否启动，检查 .env 文件中的连接字符串是否正确。
+
+================================================================================
+【开发规范】
+================================================================================
+
+1. 代码风格
+   - 遵循 PEP 8 Python 代码规范
+   - 使用 4 个空格缩进
+   - 函数和变量使用小写加下划线命名
+   - 类名使用驼峰命名
+
+2. 注释规范
+   - 每个函数添加功能说明注释
+   - 复杂逻辑添加行内注释
+   - API 接口添加参数和返回值说明
+
+3. 错误处理
+   - 使用 try-except 捕获异常
+   - 返回友好的错误信息
+   - 记录错误日志
+
+4. 测试规范
+   - 为核心功能编写单元测试
+   - 使用 pytest 进行测试
+   - 测试覆盖率达到 80% 以上
+
+================================================================================
+
+================================================================================
+
+================================================================================
+文档结束
+================================================================================
