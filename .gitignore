@@ -43,3 +43,12 @@ wheels/
 # 操作系统
 .DS_Store
 Thumbs.db
+
+*.docx
+*.doc
+*.pdf
+*.pptx
+*.ppt
+*.wps
+*.xlsx
+*.xls
